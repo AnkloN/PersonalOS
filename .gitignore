@@ -277,4 +277,5 @@ TSWLatexianTemp*
 
 OS.*
 *.bin
+*.elf
 *.o

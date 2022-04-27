@@ -10,15 +10,15 @@ KERNEL_OFFSET equ 0x1000
     call print_nl
 
     call load_kernel    ; read the kernel
-    call switch_to_pm   ; disable interrup, load GDT
+    call switch_to_pm   ; disable interrup, load GDT, switch to protected mode
     jmp $
 
-%include "./bin/boot_sect_print.asm"
-%include "./bin/boot_sect_print_hex.asm"
-%include "./bin/boot_sect_disk.asm"
-%include "./bin/32bit-gdt.asm"
-%include "./bin/32bit-print.asm"
-%include "./bin/32bit-switch.asm"
+%include "./boot/print.asm"
+%include "./boot/print_hex.asm"
+%include "./boot/disk.asm"
+%include "./boot/gdt.asm"
+%include "./boot/32bit-print.asm"
+%include "./boot/switch_pm.asm"
 
 [bits 16]
 load_kernel:
@@ -27,7 +27,7 @@ load_kernel:
     call print_nl
 
     mov bx, KERNEL_OFFSET; read from disk and store in address 0x1000
-    mov dh, 2
+    mov dh, 31
     mov dl, [BOOT_DRIVE]
     call disk_load
     ret
@@ -41,8 +41,8 @@ BEGIN_PM:
 
 
 BOOT_DRIVE db 0
-MSG_REAL_MODE db "Started in 16-bit Legacy Mode",0
-MSG_PORT_MODE db "Landed in 32-bit Protected Mode",0
+MSG_REAL_MODE db "OS Started in 16-bit Legacy Mode ****",0
+MSG_PORT_MODE db "Switch to 32-bit Protected Mode Succeeds ",0
 MSG_LOAD_KERNEL db "Loading Kernel into Memory",0
 
 ; padding
