@@ -4,49 +4,61 @@
 # $^ = all dependencies
 ADDRESS :=0x1000
 BOOT_DIR:=boot
-SRC_DIR:=src
-OBJ_DIR:=obj
-BIN_DIR := bin
+KERNEL_DIR:=kernel
+DRIVER_DIR	:=drivers
+LIB_DIR	:=libc
 
-OS_IMAGE=$(BOOT_DIR)/os-image.bin
-SRC := $(wildcard $(SRC_DIR)/*.c)
-BIN := $(wildcard $(BIN_DIR)/*.bin)
-SRC_ASM :=$(wildcard $(SRC_DIR)/*.asm)
-OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o,$(SRC))
+OS_IMAGE:=os.bin
+C_SRC:= $(wildcard $(KERNEL_DIR)/*.c $(DRIVER_DIR)/*.c)
+C_HEADERS := $(wildcard $(KERNEL_DIR)/*.h $(DRIVER_DIR)/*.h)
+SRC_ASM:=$(wildcard $(BOOT_DIR)/*.asm)
+OBJ:= ${C_SRC:%.c=%.o}
 
-GLD := i386-elf-ld
-GCC := i386-elf-gcc
-CCFLAGS:= -ffreestanding
+# GLD and GCC indicate our cross compiler as we installed them with prefix i386-elf 
+# to prevent conflict with system gcc and other softwares
 ASSM:=nasm
 DISASSM := ndisasm
+GLD := i386-elf-ld
+GCC := i386-elf-gcc
+GDB := gdb
+C_FLAGS:= -ffreestanding -g
 
 all: run
+$(OS_IMAGE): $(BOOT_DIR)/bootsect.bin kernel.bin
+	cat $^ > $@
 
-$(BIN_DIR)/kernel.bin: $(OBJ_DIR)/kernel_entry.o $(OBJ_DIR)/kernel.o
+kernel.bin: $(BOOT_DIR)/kernel_entry.o $(OBJ)
 	$(GLD) -o $@ -Ttext $(ADDRESS) $^ --oformat binary
 
+kernel.elf:$(BOOT_DIR)/kernel_entry.o $(OBJ)
+	$(GLD) -o $@ -Ttext $(ADDRESS) $^
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(GCC) $(CCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/kernel_entry.o: $(SRC_DIR)/kernel_entry.asm
+%.o: %.c $(C_HEADERS)
+	$(GCC) $(C_FLAGS) -c $< -o $@
+
+%.o: %.asm 
 	$(ASSM) $< -f elf -o $@
 
-$(BIN_DIR)/kernel.dis: $(BIN_DIR)/kernel.bin
-	$(DISASSM) -b 32 $< > $@
+%.bin: %.asm
+	$(ASSM) $< -f bin -o $@
 
-$(BIN_DIR)/bootsect.bin: $(SRC_DIR)/bootsect.asm
-	$(ASSM) $< -f bin -i $(SRC_DIR) -o $@
+debug: $(OS_IMAGE) kernel.elf
+	qemu-system-i386 -s -fda $(OS_IMAGE) &
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
 
 
-$(OS_IMAGE): $(BIN_DIR)/bootsect.bin $(BIN_DIR)/kernel.bin
-	cat $^ > $@
+
+# $(BIN_DIR)/bootsect.bin: $(SRC_DIR)/bootsect.asm
+# 	$(ASSM) $< -f bin -i $(SRC_DIR) -o $@
+
 
 run: $(OS_IMAGE)
 	qemu-system-i386 -fda $(OS_IMAGE)
 
 clean:
-	rm $(OS_IMAGE) $(BIN_DIR)/* $(OBJ_DIR)/*
+	rm -rf $(OS_IMAGE) *.bin *.dis *.o *.elf
+	rm -rf $(KERNEL_DIR)/*.o $(BOOT_DIR)/*.bin $(DRIVER_DIR)/*.o $(BOOT_DIR)/*.o
 
 # .PHONY: all
 
