@@ -23,6 +23,11 @@ GCC := i386-elf-gcc
 GDB := gdb
 C_FLAGS:= -ffreestanding -g
 
+debug: $(OS_IMAGE) kernel.elf
+	qemu-system-i386 -s -fda $(OS_IMAGE) &
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
+
+
 all: run
 $(OS_IMAGE): $(BOOT_DIR)/bootsect.bin kernel.bin
 	cat $^ > $@
@@ -42,16 +47,6 @@ kernel.elf:$(BOOT_DIR)/kernel_entry.o $(OBJ)
 
 %.bin: %.asm
 	$(ASSM) $< -f bin -o $@
-
-debug: $(OS_IMAGE) kernel.elf
-	qemu-system-i386 -s -fda $(OS_IMAGE) &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
-
-
-
-# $(BIN_DIR)/bootsect.bin: $(SRC_DIR)/bootsect.asm
-# 	$(ASSM) $< -f bin -i $(SRC_DIR) -o $@
-
 
 run: $(OS_IMAGE)
 	qemu-system-i386 -fda $(OS_IMAGE)

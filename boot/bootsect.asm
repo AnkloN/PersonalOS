@@ -13,12 +13,12 @@ KERNEL_OFFSET equ 0x1000
     call switch_to_pm   ; disable interrup, load GDT, switch to protected mode
     jmp $
 
-%include "/boot/print.asm"
-%include "/boot/print_hex.asm"
-%include "/boot/disk.asm"
-%include "/boot/gdt.asm"
-%include "/boot/32bit-print.asm"
-%include "/boot/switch_pm.asm"
+%include "./boot/print.asm"
+%include "./boot/print_hex.asm"
+%include "./boot/disk.asm"
+%include "./boot/gdt.asm"
+%include "./boot/32bit-print.asm"
+%include "./boot/switch_pm.asm"
 
 [bits 16]
 load_kernel:
@@ -41,9 +41,9 @@ BEGIN_PM:
 
 
 BOOT_DRIVE db 0
-MSG_REAL_MODE db "Started in 16-bit Legacy Mode",0
-MSG_PORT_MODE db "Shaikhul : Landed in 32-bit Protected Mode",0
-MSG_LOAD_KERNEL db "Loading Kernel into Memory",0
+MSG_REAL_MODE db "**** OS Started in 16-bit Legacy Mode ****",0
+MSG_PORT_MODE db "  Switch to 32-bit Protected Mode Succeeds ",0
+MSG_LOAD_KERNEL db "  Loading Kernel into Memory",0
 
 ; padding
 times 510-($-$$) db 0
