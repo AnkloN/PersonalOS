@@ -1,5 +1,4 @@
 #include "screen.h"
-#include"./../libc/register.h"
 #include "vga_port.h"
 
 
@@ -130,6 +129,7 @@ void kprint_at(char *data, int col, int row){
         col = get_col_from_offset(offset);
     }
 
+            print_error(FALSE);
     int i=0;
     while(data[i] != 0){
         offset = print_char(data[i++],col, row, WHITE_ON_BLACK);
@@ -145,3 +145,20 @@ void kprint_at(char *data, int col, int row){
 
 
 void kprint(void *data){kprint_at(data,-1,-1);};
+
+void s_test(){
+    port_byte_out(0x3d4, 14); 
+    int position = port_byte_in(0x3d5);
+    position = position << 8; /* high byte */
+
+    port_byte_out(0x3d4, 15); /* requesting low byte */
+    position += port_byte_in(0x3d5);
+
+    int offset_from_vga = position * 2+2;
+
+
+    char *vga = (char*)0xb8000;
+    vga[offset_from_vga] = 'W'; 
+    vga[offset_from_vga+1] = 0x0f; /* White text on black background */
+    return;
+}

@@ -33,6 +33,7 @@ $(OS_IMAGE): $(BOOT_DIR)/bootsect.bin kernel.bin
 	cat $^ > $@
 
 kernel.bin: $(BOOT_DIR)/kernel_entry.o $(OBJ)
+	@echo $(OBJ)
 	$(GLD) -o $@ -Ttext $(ADDRESS) $^ --oformat binary
 
 kernel.elf:$(BOOT_DIR)/kernel_entry.o $(OBJ)
