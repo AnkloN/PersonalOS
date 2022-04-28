@@ -1,5 +1,6 @@
 #include "screen.h"
-#include "vga_port.h"
+#include "./../cpu/vga_port.h"
+#include "./../cpu/cpu_ports.h"
 #include "./../libc/util.h"
 #include "./../libc/global_macros.h"
 
@@ -78,6 +79,9 @@ int scroll_screen(int offset){
         
 }
 
+
+
+
 int print_char( char c, int col, int row, char attr){
     /**
      * directly access video memory to print a character
@@ -134,6 +138,32 @@ void clear_screen(){
         screen[i*2+1] = WHITE_ON_BLACK;
     }
     set_cursor_offset(get_offset(0,0));
+}
+
+void clear_one_character(){
+    int offset = get_cursor_offset();
+    int row = get_row_from_offset(offset);
+    int col = get_col_from_offset(offset);
+    if(col==0){
+        if(row == 0) return;
+        row -= 1;
+        col = VGA_MAX_COLS -2;
+    }else{
+        col -= 1;
+    }
+    print_char(' ',col,row,BLACK_ON_BLACK);
+    offset = get_cursor_offset();
+    row = get_row_from_offset(offset);
+    col = get_col_from_offset(offset);
+    if(col==0){
+        if(row == 0) return;
+        row -= 1;
+        col = VGA_MAX_COLS -2;
+    }else{
+        col -= 1;
+    }
+
+    set_cursor_offset(get_offset(col,row));
 }
 
 void kprint_at(char *data, int col, int row){

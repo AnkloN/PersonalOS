@@ -16,5 +16,8 @@
 #define IDT_TRAP_GATE_32 0xF
 
 
+// CPU informations
+#define CPU_FREQ_Hz 1193180  // 3791998 MHz but larger file cause crash (Need to debug)
+
 
 #endif

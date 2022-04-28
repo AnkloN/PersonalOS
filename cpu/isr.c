@@ -45,7 +45,7 @@ char *exception_messages[] = {
     "Reserved",
     "Reserved"
 };
-
+isr_t interrupt_handlers[256];
 
 
 void isr_install(){
@@ -83,8 +83,42 @@ void isr_install(){
     set_idt_gate(29, (uint_32)isr29);
     set_idt_gate(30, (uint_32)isr30);
     set_idt_gate(31, (uint_32)isr31);
+    // TODO: come back later when you could debug and make it more readable
+    // Remap the PIC
+    port_byte_out(0x20, 0x11);
+    port_byte_out(0xA0, 0x11);
+    port_byte_out(0x21, 0x20);
+    port_byte_out(0xA1, 0x28);
+    port_byte_out(0x21, 0x04);
+    port_byte_out(0xA1, 0x02);
+    port_byte_out(0x21, 0x01);
+    port_byte_out(0xA1, 0x01);
+    port_byte_out(0x21, 0x0);
+    port_byte_out(0xA1, 0x0); 
+
+    // Install the IRQs
+    set_idt_gate(32, (uint_32)irq0);
+    set_idt_gate(33, (uint_32)irq1);
+    set_idt_gate(34, (uint_32)irq2);
+    set_idt_gate(35, (uint_32)irq3);
+    set_idt_gate(36, (uint_32)irq4);
+    set_idt_gate(37, (uint_32)irq5);
+    set_idt_gate(38, (uint_32)irq6);
+    set_idt_gate(39, (uint_32)irq7);
+    set_idt_gate(40, (uint_32)irq8);
+    set_idt_gate(41, (uint_32)irq9);
+    set_idt_gate(42, (uint_32)irq10);
+    set_idt_gate(43, (uint_32)irq11);
+    set_idt_gate(44, (uint_32)irq12);
+    set_idt_gate(45, (uint_32)irq13);
+    set_idt_gate(46, (uint_32)irq14);
+    set_idt_gate(47, (uint_32)irq15);
 
     set_idt(); 
+}
+
+void register_interrupt_handler(uchar_8 n, isr_t handler){
+    interrupt_handlers[n]=handler;
 }
 
 void isr_handler(registers_t reg){
@@ -95,4 +129,20 @@ void isr_handler(registers_t reg){
     kprint("  ");
     kprint(exception_messages[reg.interrupt_no]);
     kline_break();
+}
+
+
+
+
+void irq_handler(registers_t reg){
+    // Send end of interrupt EOI to PIC so that it would send next interrupt
+    if(reg.interrupt_no >=40){
+        port_byte_out(SLAVE_COMMAND_PIC,0x20);
+    }
+    port_byte_out(MASTER_COMMAND_PIC,0x20);
+
+    if(interrupt_handlers[reg.interrupt_no]!=0){
+        isr_t handler = interrupt_handlers[reg.interrupt_no]; // get the function pointer
+        handler(reg); // call the function
+    }
 }
