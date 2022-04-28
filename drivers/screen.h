@@ -3,8 +3,8 @@ Our main video driver code
 Gerular process will use this code to print output
 */
 
-// #ifndef __SCREEN_DRIVER_H__
-// #define __SCREEN_DRIVER_H__
+#ifndef __SCREEN_DRIVER_H__
+#define __SCREEN_DRIVER_H__
 
 // Information regarding VGA
 #define REG_VGA_COTRL 0x3d4
@@ -22,16 +22,14 @@ Gerular process will use this code to print output
 #define BLACK_ON_GREEN 0xa0
 #define BLACK_ON_PINK 0xd0
 #define BLACK_ON_YELLOW 0xe0
-// random
-#define BYTE_LENGTH 8
-#define FALSE 0
-#define TRUE 1
+
 
 
 // driver public functions
 void clear_screen();
+void kline_break();
 void kprint_at(char *data, int col, int row);
 void kprint(void *data);
-void s_test();
 
-// #endif
+
+#endif
