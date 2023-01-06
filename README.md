@@ -67,5 +67,6 @@ This is a personal side project to write OS from scratch. As an computer archite
 `make install-target-libgcc`
 
 If everything works all right[^1], executing Makefile with make command should compile the OS and `make run` should run the OS.
-[^1] Cross compilation code sequence worked for my workstation. It may not work for all system.
+
+[^1]: Cross compilation code sequence worked for my workstation. It may not work for all system.
 
